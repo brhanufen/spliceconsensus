@@ -1,0 +1,14 @@
+ref/
+*.fa
+*.fa.fai
+*.fa.gz
+data/mfass/*.txt
+data/mfass/*.bed
+__pycache__/
+*.pyc
+*.aux
+*.log
+*.out
+tectonic
+.DS_Store
+promo/

@@ -1,0 +1,8 @@
+# Analysis (CPU, reproduces the benchmark from the released scores)
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+scipy>=1.10
+matplotlib>=3.7
+# Scoring (GPU) additionally needs pyfaidx and the Proto tool stack (proto-tools, proto-language)
+pyfaidx>=0.7
