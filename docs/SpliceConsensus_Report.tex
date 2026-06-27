@@ -140,7 +140,8 @@ discretized than Pangolin's.} SpliceAI reports its delta to two decimals and ass
 exactly zero to most variants away from splice sites: 55\% of non-disrupting variants
 but only 14\% of SDVs score zero, so the zeros are genuine no-effect calls (zeros are
 depleted of SDVs, 0.96\% versus the 3.79\% base rate), not an artifact. Pangolin
-instead uses a continuous range (about 1\% of variants near zero). This finer score
+instead uses a continuous range, taking 17{,}723 distinct score values to SpliceAI's
+101, with no variant scored exactly zero. This finer score
 resolution may contribute to Pangolin's stronger ranking here.
 
 \textbf{Finding 5 (consensus): combining does not help.} A logistic-regression

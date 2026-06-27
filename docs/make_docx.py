@@ -86,7 +86,7 @@ para("Finding 1: Pangolin is the strongest predictor, by a clear margin on both 
 para("Finding 4 (output granularity): in these outputs SpliceAI's scores are more discretized than Pangolin's. SpliceAI reports its delta to two decimals and "
      "assigns exactly zero to most variants away from splice sites: 55% of non-disrupting variants but only 14% of SDVs "
      "score zero, so the zeros are genuine no-effect calls, not an artifact. Pangolin instead uses a continuous range, "
-     "and this finer score resolution may contribute to its stronger ranking here.")
+     "taking 17,723 distinct score values to SpliceAI's 101, with no variant scored exactly zero, and this finer score resolution may contribute to its stronger ranking here.")
 para("Finding 5 (consensus): combining does not help. A logistic-regression consensus of the three modern predictors, "
      "trained and evaluated on an exon-grouped 50/50 split, reaches held-out AP 0.443 versus Pangolin's 0.442 on the same "
      "split, a difference far inside the bootstrap interval, and a slightly lower AUROC. The fitted model essentially "

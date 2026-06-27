@@ -1,4 +1,4 @@
-"""Labeled correctness tests (synthetic arrays here ONLY — not part of any reported result)."""
+"""Labeled correctness tests (synthetic arrays here ONLY, not part of any reported result)."""
 import numpy as np
 from sklearn.metrics import roc_auc_score, average_precision_score
 
