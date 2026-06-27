@@ -38,17 +38,18 @@ para("We benchmark three published splicing variant-effect predictors, run throu
 h("Introduction")
 para("RNA splicing is disrupted in a large share of disease-causing variants, and splice-altering variants are among the "
      "hardest to interpret in clinical genetics, because their effect depends on sequence context that is not obvious from "
-     "the variant alone (Scotti and Swanson 2016). Deep-learning predictors of splicing from primary sequence, notably "
+     "the variant alone (Scotti and Swanson 2016; Wang and Cooper 2007; Cartegni et al. 2002). Deep-learning predictors of splicing from primary sequence, notably "
      "SpliceAI (Jaganathan et al. 2019) and Pangolin (Zeng and Li 2022), are now widely used to flag candidate "
-     "splice-disrupting variants and appear in clinical interpretation pipelines.")
-para("These predictors, together with the more recent SpliceTransformer (You et al. 2024) and the earlier SPANR model "
-     "(Xiong et al. 2015), are usually evaluated in their own publications on heterogeneous datasets and metrics, which "
+     "splice-disrupting variants and appear in clinical variant-interpretation pipelines (Richards et al. 2015; Walker et al. 2023).")
+para("These predictors, together with the more recent SpliceTransformer (You et al. 2024), the earlier SPANR model "
+     "(Xiong et al. 2015), and other models such as MMSplice (Cheng et al. 2019), are usually evaluated in their own publications on heterogeneous datasets and metrics, which "
      "makes it hard to compare them on equal footing or to know where each is reliable. Multiplexed experimental assays "
-     "provide a fixed ground truth for such comparisons: MFASS (Chong et al. 2019) measured the splicing effect of tens of "
+     "of splicing provide a fixed ground truth for such comparisons (Rosenberg et al. 2015): MFASS (Chong et al. 2019) measured the splicing effect of tens of "
      "thousands of human single-nucleotide variants in exons and flanking intronic regions in a minigene reporter and labels those that strongly reduce exon "
      "inclusion as splice-disrupting variants.")
-para("Here we provide a uniform, reproducible, open benchmark of all four predictors on the MFASS single-nucleotide "
-     "variants, scored through a single interface, with bootstrap confidence intervals, a held-out consensus, and a legacy "
+para("Prior work has benchmarked deep-learning splice predictors against functional splicing assays (Riepe et al. 2021). "
+     "Here we provide a uniform, reproducible, open benchmark of all four predictors on the MFASS single-nucleotide "
+     "variants, scored through a single interface, with bootstrap confidence intervals, an exon-grouped held-out consensus, and a legacy "
      "baseline. Beyond the aggregate ranking, we ask where the predictions fail: we stratify detection by distance to the "
      "splice site and identify the variants that every tool misses. The contribution is the reproducible benchmark and a "
      "characterization of a shared exon-interior blind spot.")
@@ -59,7 +60,7 @@ para("MFASS (the Multiplexed Functional Assay of Splicing by Sort-seq; Chong et 
      "in exon inclusion, and variants reducing inclusion by at least 0.50 are labeled splice-disrupting variants (SDVs). "
      "We score the 28,972 mutant SNVs (51% in exons, 49% in the flanking introns within about 50 bp of a splice site); for the binary detection task we drop variants whose inclusion change was not "
      "measured, leaving 27,733 variants of which 1,050 (3.79%) are SDVs. The strong imbalance makes average precision "
-     "the primary metric, reported alongside AUROC.")
+     "the primary metric (Saito and Rehmsmeier 2015), reported alongside AUROC.")
 
 h("Predictors and scoring")
 para("Three predictors are run through Proto's wrappers: SpliceAI (Jaganathan et al. 2019), a deep convolutional model; "
@@ -106,7 +107,7 @@ para("Recall declines with distance from the splice site for every tool. Within 
      "lie more than 10 bp from a splice site, and even Pangolin, the best tool, detects only 59% of them.")
 para("Most strikingly, 22% of all disrupting variants (228 of 1,050) are missed by every one of the four tools at this "
      "operating point. These shared misses sit predominantly away from the splice site: 75% lie more than 10 bp from a splice "
-     "site, and 162 of 228 (71%) are exonic. They are consistent with exon-interior regulatory disruptions, including possible exonic splicing enhancer or silencer effects, that splice-site models "
+     "site, and 162 of 228 (71%) are exonic. They are consistent with exon-interior regulatory disruptions, including possible exonic splicing enhancer or silencer effects (Cartegni et al. 2002), that splice-site models "
      "are not built to capture, the class of variant MFASS was designed to expose. The practical implication is that these "
      "tools are strongest for splice-site-proximal variants but require caution for exon-interior variants, where roughly one "
      "in five disrupting variants is invisible to all current predictors.")
@@ -130,7 +131,7 @@ para("The labels and continuous readout are the public MFASS measurements; all p
 
 h("Data and code availability")
 para("All code, the per-tool variant scores, the benchmark and failure-mode outputs, and the figures are openly available "
-     "at github.com/brhanufen/spliceconsensus and and archived on Zenodo (doi:10.5281/zenodo.20948820). The benchmark and all "
+     "at github.com/brhanufen/spliceconsensus and archived on Zenodo (doi:10.5281/zenodo.20948820). The benchmark and all "
      "figures reproduce on a CPU in about a minute from the committed scores and a slim labels file, with no large download. "
      "The MFASS dataset is from Chong et al. 2019 (github.com/KosuriLab/MFASS); the predictors are the public SpliceAI, "
      "Pangolin, SpliceTransformer, and SPANR models, run through the Proto tool ecosystem.")
@@ -142,13 +143,21 @@ para("B.F.Z. designed the benchmark, ran the analyses, generated the figures, an
 
 h("References")
 for ref in [
-    "Scotti, M.M. and Swanson, M.S. RNA mis-splicing in disease. Nature Reviews Genetics 17, 2016. doi:10.1038/nrg.2015.3.",
-    "Zeng, T. and Li, Y.I. Predicting RNA splicing from DNA sequence using Pangolin. Genome Biology, 2022. doi:10.1186/s13059-022-02664-4.",
-    "Jaganathan, K., et al. Predicting splicing from primary sequence with deep learning (SpliceAI). Cell, 2019. doi:10.1016/j.cell.2018.12.015.",
+    "Scotti, M.M. and Swanson, M.S. RNA mis-splicing in disease. Nature Reviews Genetics 17(1):19–32, 2016. doi:10.1038/nrg.2015.3.",
+    "Wang, G.-S. and Cooper, T.A. Splicing in disease: disruption of the splicing code and the decoding machinery. Nature Reviews Genetics 8:749–761, 2007. doi:10.1038/nrg2164.",
+    "Cartegni, L., Chew, S.L., and Krainer, A.R. Listening to silence and understanding nonsense: exonic mutations that affect splicing. Nature Reviews Genetics 3:285–298, 2002. doi:10.1038/nrg775.",
+    "Jaganathan, K., et al. Predicting splicing from primary sequence with deep learning (SpliceAI). Cell 176(3):535–548.e24, 2019. doi:10.1016/j.cell.2018.12.015.",
+    "Zeng, T. and Li, Y.I. Predicting RNA splicing from DNA sequence using Pangolin. Genome Biology 23:103, 2022. doi:10.1186/s13059-022-02664-4.",
+    "Richards, S., Aziz, N., Bale, S., et al. Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology. Genetics in Medicine 17:405–424, 2015. doi:10.1038/gim.2015.30.",
+    "Walker, L.C., de la Hoya, M., Wiggins, G.A.R., et al. Using the ACMG/AMP framework to capture evidence related to predicted and observed impact on splicing. The American Journal of Human Genetics 110:1046–1067, 2023. doi:10.1016/j.ajhg.2023.06.002.",
     "You, N., et al. SpliceTransformer predicts tissue-specific splicing linked to human diseases. Nature Communications, 2024. doi:10.1038/s41467-024-53088-6.",
-    "Chong, R., Insigne, K.D., Yao, D., Burghard, C.P., Wang, J., Hsiao, Y.-H.E., Jones, E.M., Goodman, D.B., Xiao, X., and Kosuri, S. A multiplexed assay for exon recognition reveals that an unappreciated fraction of rare genetic variants cause large-effect splicing disruptions (MFASS). Molecular Cell 73, 183-194.e8, 2019. doi:10.1016/j.molcel.2018.10.037.",
-    "Xiong, H.Y., et al. The human splicing code reveals new insights into the genetic determinants of disease (SPANR). Science 347, 2015. doi:10.1126/science.1254806.",
-    "Merchant, A.T., et al. A high-level programming language for generative biology with Proto. bioRxiv 2026.06.22.733870, 2026. doi:10.64898/2026.06.22.733870."]:
+    "Xiong, H.Y., et al. RNA splicing. The human splicing code reveals new insights into the genetic determinants of disease (SPANR). Science 347(6218):1254806, 2015. doi:10.1126/science.1254806.",
+    "Cheng, J., Nguyen, T.Y.D., Cygan, K.J., et al. MMSplice: modular modeling improves the predictions of genetic variant effects on splicing. Genome Biology 20:48, 2019. doi:10.1186/s13059-019-1653-z.",
+    "Rosenberg, A.B., Patwardhan, R.P., Shendure, J., and Seelig, G. Learning the sequence determinants of alternative splicing from millions of random sequences. Cell 163:698–711, 2015. doi:10.1016/j.cell.2015.09.054.",
+    "Chong, R., Insigne, K.D., Yao, D., Burghard, C.P., Wang, J., Hsiao, Y.-H.E., Jones, E.M., Goodman, D.B., Xiao, X., and Kosuri, S. A multiplexed assay for exon recognition reveals that an unappreciated fraction of rare genetic variants cause large-effect splicing disruptions (MFASS). Molecular Cell 73:183–194.e8, 2019. doi:10.1016/j.molcel.2018.10.037.",
+    "Riepe, T.V., et al. Benchmarking deep learning splice prediction tools using functional splice assays. Human Mutation 42:799–810, 2021. doi:10.1002/humu.24212.",
+    "Merchant, A.T., et al. A high-level programming language for generative biology with Proto. bioRxiv 2026.06.22.733870, 2026. doi:10.64898/2026.06.22.733870.",
+    "Saito, T. and Rehmsmeier, M. The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. PLOS ONE 10:e0118432, 2015. doi:10.1371/journal.pone.0118432."]:
     d.add_paragraph(ref, style="List Bullet")
 
 d.save(str(OUT)); print("wrote", OUT)

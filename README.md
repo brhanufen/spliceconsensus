@@ -102,9 +102,9 @@ table, and the Proto tool stack (proto-tools + proto-language), then run
 
 ## References
 
-- Zeng & Li. Predicting RNA splicing from DNA sequence using Pangolin. *Genome Biology*, 2022. doi:10.1186/s13059-022-02664-4.
-- Jaganathan et al. Predicting splicing from primary sequence with deep learning (SpliceAI). *Cell*, 2019. doi:10.1016/j.cell.2018.12.015.
+- Zeng & Li. Predicting RNA splicing from DNA sequence using Pangolin. *Genome Biology* 23:103, 2022. doi:10.1186/s13059-022-02664-4.
+- Jaganathan et al. Predicting splicing from primary sequence with deep learning (SpliceAI). *Cell* 176(3):535–548.e24, 2019. doi:10.1016/j.cell.2018.12.015.
 - You et al. SpliceTransformer predicts tissue-specific splicing linked to human diseases. *Nature Communications*, 2024. doi:10.1038/s41467-024-53088-6.
-- Chong, R., Insigne, K.D., Yao, D., et al. A multiplexed assay for exon recognition reveals that an unappreciated fraction of rare genetic variants cause large-effect splicing disruptions (MFASS). *Molecular Cell* 73, 183-194.e8, 2019. doi:10.1016/j.molcel.2018.10.037.
-- Xiong et al. The human splicing code reveals new insights into the genetic determinants of disease (SPANR). *Science* 347, 2015. doi:10.1126/science.1254806.
+- Chong, R., Insigne, K.D., Yao, D., et al. A multiplexed assay for exon recognition reveals that an unappreciated fraction of rare genetic variants cause large-effect splicing disruptions (MFASS). *Molecular Cell* 73:183–194.e8, 2019. doi:10.1016/j.molcel.2018.10.037.
+- Xiong et al. RNA splicing. The human splicing code reveals new insights into the genetic determinants of disease (SPANR). *Science* 347(6218):1254806, 2015. doi:10.1126/science.1254806.
 - Merchant et al. A high-level programming language for generative biology with Proto. *bioRxiv* 2026.06.22.733870, 2026. doi:10.64898/2026.06.22.733870.
