@@ -5,28 +5,33 @@
 \widowpenalty=10000 \clubpenalty=10000
 \title{\textbf{A Reproducible MFASS Benchmark of Splice-Disruption Predictors\\ Reveals a Shared Exon-Interior Blind Spot}}
 \author{Brhanu F. Znabu\textsuperscript{1} \quad Zohaib Atif\textsuperscript{2} \\[3pt]
-\small \textsuperscript{1}Biomedical Engineering Program, College of Engineering, University of Nebraska-Lincoln, Lincoln, NE, USA \\
-\small \textsuperscript{2}Department of Biomedical Science and Engineering, Gwangju Institute of Science and Technology (GIST), Gwangju, Republic of Korea}
+\small \textsuperscript{1}Biomedical Engineering Program, College of Engineering,\\
+\small University of Nebraska-Lincoln, Lincoln, NE, USA \\
+\small \textsuperscript{2}Department of Biomedical Science and Engineering,\\
+\small Gwangju Institute of Science and Technology (GIST), Gwangju, Republic of Korea}
 \date{June 2026}
 \begin{document}
 \maketitle
 
 \begin{abstract}
 \noindent
-We benchmark three published splicing variant-effect predictors, run through the
-Proto tool ecosystem, against a multiplexed experimental splicing assay. On 27{,}733
+We benchmark four published splicing variant-effect predictors against a
+multiplexed experimental splicing assay. On 27{,}733
 single-nucleotide variants in and around human exons from MFASS with measured exon-inclusion outcomes,
 Pangolin is the strongest predictor of splice-disrupting variants (AUROC 0.888,
 average precision 0.421), ahead of SpliceAI (0.819, 0.321) and SpliceTransformer
-(0.786, 0.317), and all three clearly exceed the older SPANR model (0.748, 0.228).
+(0.786, 0.317), with MMSplice fourth (0.758, 0.256); all four exceed the older SPANR model (0.748, 0.228).
 The ranking reproduces the relative performance reported by the Pangolin authors,
-a correctness check on the pipeline. A calibrated consensus of the three modern
-predictors, evaluated on an exon-grouped held-out split, does not meaningfully
+a correctness check on the pipeline. A calibrated consensus of the three deep-learning
+sequence-window predictors, evaluated on an exon-grouped held-out split, does not meaningfully
 improve over Pangolin alone. Stratifying by distance to the splice site exposes a
-shared blind spot: all four tools detect disruptions within a few bases of the
-splice site well, but recall is substantially lower in the exon interior, and 22\% of
+shared blind spot: all five tools detect disruptions within a few bases of the
+splice site well, but recall declines sharply in the exon interior, and 19\% of
 disrupting variants are missed by every tool; these shared misses are enriched among
-variants away from splice sites, and many are exon-interior. Every
+variants away from splice sites, and are predominantly exon-interior. MMSplice, the one
+model built for modular exonic and intronic effects rather than splice-site
+recognition, shows the same distance-dependent decline, so the blind spot is not an
+artifact of splice-site-centric architectures. Every
 number is computed against fixed experimental ground truth and is reproducible
 from the public dataset and the released code.
 \end{abstract}
@@ -41,8 +46,8 @@ are now widely used to flag candidate splice-disrupting variants and appear in
 clinical variant-interpretation pipelines \cite{acmg,acmgsplice}.
 
 These predictors, together with the more recent SpliceTransformer
-\cite{splicetransformer}, the earlier SPANR model \cite{spanr}, and other models
-such as MMSplice \cite{mmsplice}, are usually
+\cite{splicetransformer}, the modular MMSplice model \cite{mmsplice}, and the
+earlier SPANR model \cite{spanr}, are usually
 evaluated in their own publications on heterogeneous datasets and metrics, which
 makes it hard to compare them on equal footing or to know where each is reliable.
 Multiplexed experimental assays of splicing provide a fixed ground truth for such
@@ -52,11 +57,14 @@ reporter and labels those that strongly reduce exon inclusion as splice-disrupti
 variants.
 
 Prior work has benchmarked deep-learning splice predictors against functional
-splicing assays \cite{riepe}. Here we provide a uniform, reproducible, open
-benchmark of all four predictors on
+splicing assays \cite{riepe,smithkitzman}, and the MFASS variants themselves were
+used to compare splice scores when CADD-Splice was developed \cite{caddsplice}. In one
+such effort, predictor concordance with the assay, and among predictors, was lower for
+exonic than for intronic variants \cite{smithkitzman}. Here we provide a uniform, reproducible, open
+benchmark of four modern predictors, together with the older SPANR model as a legacy
+baseline, on
 the MFASS single-nucleotide variants, scored through a single interface, with
-bootstrap confidence intervals, an exon-grouped held-out consensus, and a legacy
-baseline. Beyond
+bootstrap confidence intervals and an exon-grouped held-out consensus. Beyond
 the aggregate ranking, we ask where the predictions fail: we stratify detection by
 distance to the splice site and identify the variants that every tool misses. The
 contribution is the reproducible benchmark and a characterization of a shared
@@ -79,12 +87,24 @@ The strong class imbalance makes average precision (area under the
 precision-recall curve) the primary metric \cite{prroc}, reported alongside AUROC.
 
 \section{Predictors and scoring}
-Three predictors are run through Proto's wrappers \cite{proto}: SpliceAI
+We evaluate four published models using their released weights. Three are
+deep-learning models that score from a genomic sequence window: SpliceAI
 \cite{spliceai}, a deep convolutional model; Pangolin \cite{pangolin}, a
 tissue-aware successor; and SpliceTransformer \cite{splicetransformer}, a
-transformer predicting tissue-specific splicing. The older SPANR model
-\cite{spanr}, whose precomputed scores ship with MFASS, is included as a legacy
-baseline. Because the predictors require about ten kilobases of genomic context,
+transformer predicting tissue-specific splicing. Scoring for these three was
+orchestrated with the Proto tool ecosystem \cite{proto}, but the models and weights
+are the published ones and the per-tool scores are released, so the benchmark is
+verifiable independently of that infrastructure. The fourth model, MMSplice
+\cite{mmsplice}, takes a different, modular approach: it scores the acceptor, exon,
+and donor sub-sequences of an exon separately and combines them, and was itself
+designed for and evaluated on modular exonic and intronic effects. We score MMSplice
+through its standard VCF interface against hg38, reconstructing each MFASS exon as an
+internal (cassette) exon so that both of its splice-site modules are defined; each
+variant's effect is reduced to the magnitude of the predicted change in exon
+inclusion ($|\Delta\,\mathrm{logit}\,\Psi|$), matching the single-magnitude reduction
+used for the other tools. The older SPANR model \cite{spanr}, whose precomputed
+scores ship with MFASS, is included as a legacy baseline. Because the three
+sequence-window predictors require about ten kilobases of genomic context,
 each variant is scored in its real hg38 context (reference versus alternate),
 following each tool's own usage, not in the short minigene fragment.
 
@@ -93,7 +113,8 @@ SpliceAI's maximum delta over its four acceptor/donor gain and loss scores;
 Pangolin's larger of maximum splice gain and maximum splice loss magnitude;
 SpliceTransformer's maximum change in acceptor or donor probability between the
 reference and alternate sequence at the variant locus, using the tissue-agnostic
-splice-type channels; and the magnitude of SPANR's maximum-tissue $\Delta$ index.
+splice-type channels; the magnitude of MMSplice's predicted change in exon-inclusion
+logit; and the magnitude of SPANR's maximum-tissue $\Delta$ index.
 Tissue-aware tools are used in their tissue-agnostic setting, since MFASS is an
 in-vitro minigene assay.
 
@@ -105,9 +126,10 @@ in-vitro minigene assay.
 predictor & $n$ & AUROC & AP & AP 95\% CI \\
 \midrule
 Pangolin           & 27{,}733 & \textbf{0.888} & \textbf{0.421} & [0.386, 0.454] \\
-SpliceAI           & 27{,}733 & 0.819 & 0.321 & [0.294, 0.353] \\
+SpliceAI           & 27{,}733 & 0.819 & 0.321 & [0.293, 0.353] \\
 SpliceTransformer  & 27{,}733 & 0.786 & 0.317 & [0.285, 0.352] \\
-SPANR (legacy)     & 27{,}663 & 0.748 & 0.228 & [0.201, 0.258] \\
+MMSplice           & 27{,}733 & 0.758 & 0.256 & [0.226, 0.285] \\
+SPANR (legacy)     & 27{,}663 & 0.748 & 0.228 & [0.202, 0.260] \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -131,8 +153,10 @@ base rate). The ranking is consistent with the ROC view.}
 
 \textbf{Finding 1: Pangolin is the strongest predictor}, by a clear margin on both
 AUROC and average precision, and its AP confidence interval does not overlap those
-of the other tools. \textbf{Finding 2: all three modern predictors beat the legacy
-SPANR model.} \textbf{Finding 3: the ranking reproduces the relative ordering the
+of the other tools. \textbf{Finding 2: all four modern predictors beat the legacy
+SPANR model}, though MMSplice, used here tissue-agnostically on a single-cassette
+minigene context rather than a variant's native multi-exon transcript, ranks fourth
+and sits just above the SPANR baseline. \textbf{Finding 3: the ranking reproduces the relative ordering the
 Pangolin authors reported}, which is a correctness check on the scoring pipeline.
 
 \textbf{Finding 4 (output granularity): in these outputs SpliceAI's scores are more
@@ -140,12 +164,12 @@ discretized than Pangolin's.} SpliceAI reports its delta to two decimals and ass
 exactly zero to most variants away from splice sites: 55\% of non-disrupting variants
 but only 14\% of SDVs score zero, so the zeros are genuine no-effect calls (zeros are
 depleted of SDVs, 0.96\% versus the 3.79\% base rate), not an artifact. Pangolin
-instead uses a continuous range, taking 17{,}723 distinct score values to SpliceAI's
+instead uses a continuous range, taking 27{,}528 distinct score values to SpliceAI's
 101, with no variant scored exactly zero. This finer score
 resolution may contribute to Pangolin's stronger ranking here.
 
 \textbf{Finding 5 (consensus): combining does not help.} A logistic-regression
-consensus of the three modern predictors, trained and evaluated on an
+consensus of the three deep-learning sequence-window predictors, trained and evaluated on an
 \emph{exon-grouped} 50/50 split (no exon appears in both train and test), reaches
 held-out AP 0.443 versus Pangolin's 0.442 on the same split, a difference far
 inside the bootstrap interval, and a slightly lower AUROC (0.890 versus 0.893). A
@@ -158,7 +182,7 @@ The aggregate ranking hides where the predictions break down. We stratified
 splice-disrupting-variant recall by the distance of each variant to the nearest
 splice site, computed from the MFASS minigene construct annotation and cross-checked
 against an independent genomic-coordinate distance (Pearson $r=0.997$), comparing
-all four tools at a common operating point: the score threshold that gives a 10\%
+all five tools at a common operating point: the score threshold that gives a 10\%
 false-positive rate on non-disrupting variants.
 
 \begin{figure}[h]
@@ -171,26 +195,42 @@ splice-site-proximal disruptions well and degrades with distance from the splice
 
 Recall declines with distance from the splice site for every tool (Figure~3).
 Within 2\,bp of a splice site the modern tools recover 80 to 90\% of disrupting
-variants (Pangolin 0.90, SpliceAI 0.82, SpliceTransformer 0.80); beyond 20\,bp their
-recall falls to 0.48, 0.35, and 0.29 respectively, and SPANR to 0.20. More than half
+variants (Pangolin 0.90, SpliceAI 0.82, SpliceTransformer 0.80, MMSplice 0.85);
+beyond 20\,bp their recall falls to 0.48, 0.35, 0.29, and 0.22 respectively, and
+SPANR to 0.20. More than half
 of the disrupting variants (53\%) lie more than 10\,bp from a splice site, and even
-Pangolin, the best tool, detects only 59\% of them.
+Pangolin, the best tool, detects only 59\% of them. This distance-dependent decline
+is independently consistent with the Pangolin authors' own report, in which the
+model's average precision falls from about 0.75 for variants within 9\,bp of a splice
+site to below 0.35 beyond that distance \cite{pangolin}. MMSplice, despite its
+modular exon-centric design, follows the same profile as the splice-site models (high
+recall next to the splice site, falling into the exon interior) rather than
+resisting the decline.
 
-Most strikingly, 22\% of all disrupting variants (228 of 1{,}050) are missed by
-every one of the four tools at this operating point. These shared misses sit
-predominantly away from the splice site: 75\% lie more than 10\,bp from a splice
-site, and 162 of 228 (71\%) are exonic. They are consistent with exon-interior
+Furthermore, 19\% of all disrupting variants (200 of 1{,}050) are missed by
+every one of the five tools at this 10\% false-positive operating point (30\% at a
+stricter 5\% and 8\% at a more permissive 20\% false-positive rate; the effect is
+qualitatively the same at every threshold). These shared misses sit
+predominantly away from the splice site: 77\% lie more than 10\,bp from a splice
+site, and 149 of 200 (74\%) are exonic. They are not weak-effect variants sitting
+near the labeling cutoff: their median inclusion change is $-0.78$ (82\% below
+$-0.70$, only 4\% within 0.1 of the $-0.50$ threshold), close to the $-0.87$ median
+of the disrupting variants the tools do detect, so the shared miss reflects a true
+blind spot rather than borderline labels. They are consistent with exon-interior
 regulatory disruptions, including possible exonic splicing enhancer or silencer
-effects \cite{cartegni}, that splice-site models are not built to capture, the class of variant
-MFASS was designed to expose. The practical implication is that these tools are
+effects \cite{cartegni}, the class of variant
+MFASS was designed to expose. That MMSplice, which is explicitly built to model modular
+exonic and intronic regulation, misses these variants alongside the splice-site
+models indicates the blind spot is a shared empirical limitation of current
+predictors on this assay, not only a consequence of splice-site-centric design. The practical implication is that these tools are
 strongest for splice-site-proximal variants but require caution for exon-interior
 variants, where roughly one in five disrupting variants is invisible to all current
 predictors.
 
 \section{What this shows, and what it does not}
 It shows that, against a multiplexed experimental splicing assay, Pangolin detects
-splice-disrupting variants better than SpliceAI, SpliceTransformer, and SPANR, that
-all modern tools beat the legacy baseline, and that a simple consensus does not
+splice-disrupting variants better than SpliceAI, SpliceTransformer, MMSplice, and SPANR, that
+all four modern tools beat the legacy baseline, and that a simple consensus does not
 improve on the best single tool. Several caveats bound the claim. First, the
 predictors were trained on genomic and transcriptomic data and may have encountered
 the wild-type splice sites of these exons during training, so this is a realistic
@@ -199,21 +239,34 @@ applies to all tools. Second, MFASS is an in-vitro minigene assay in a single
 cellular context, so it does not capture tissue-specific or full-length-gene
 effects, and we therefore used the tissue-aware tools in a tissue-agnostic setting.
 Third, all predictors are scored as disruption magnitudes against a loss-of-function
-label; a directional or tissue-resolved analysis is left for future work. The
+label; a directional or tissue-resolved analysis is left for future work. Fourth,
+MMSplice is scored on a reconstructed single-cassette minigene context rather than
+each variant's native multi-exon transcript, and without a reference-inclusion term,
+which likely understates its absolute performance somewhat; its fourth-place ranking
+and its exon-interior decline should be read with that in mind. The
 contribution is a reproducible head-to-head benchmark, not a claim of clinical validation.
 
 \section{Reproducibility and data processing}
 The labels and continuous readout are the public MFASS measurements \cite{mfass};
-all predictor scores are produced by the public models run through Proto
-\cite{proto}. Variants whose reported alleles are on the minus strand were normalized to
-the plus strand before scoring; for the three Proto-scored modern predictors, full
-coverage of 28{,}972 of 28{,}972 variants confirms no variant was silently dropped,
-and SPANR covers slightly fewer because MFASS provides precomputed SPANR scores for
+the three sequence-window predictor scores are produced by the public models run through Proto
+\cite{proto}, and MMSplice by its public model through its standard VCF interface.
+Variants whose reported alleles are on the minus strand were normalized to
+the plus strand before scoring; for the three Proto-scored sequence-window predictors, full
+coverage of 28{,}972 of 28{,}972 variants confirms no variant was silently dropped.
+MMSplice likewise scores all 28{,}972 variants once each exon is presented as an
+internal cassette exon (an initial single-exon annotation left roughly half the
+variants, those in the flanking introns, unscored and is not used).
+SPANR covers slightly fewer because MFASS provides precomputed SPANR scores for
 only a subset. SpliceAI returns no score for variants outside an
 annotated gene; these were assigned a delta of zero, a minority as shown by the
-depletion of SDVs among zero-scored variants. Every number is reproduced by
-\texttt{score\_one\_tool.py} (scoring on GPU) and \texttt{analyze.py} (metrics,
-consensus, and figures) from the public dataset.
+depletion of SDVs among zero-scored variants. This imputation can only depress
+SpliceAI, but it does not drive the ranking: restricting to the 12{,}855 variants
+SpliceAI scores nonzero (the three sequence-window tools and SPANR scored on the same
+subset), Pangolin still
+leads (AP 0.468) ahead of SpliceTransformer (0.369) and SpliceAI (0.365), with
+SPANR last (0.302). Every number is reproduced by
+\texttt{score\_one\_tool.py} and \texttt{score\_mmsplice.py} (scoring) and
+\texttt{analyze.py} (metrics, consensus, and figures) from the public dataset.
 
 \section{Data and code availability}
 All code, the per-tool variant scores, the benchmark and failure-mode outputs, and
@@ -231,7 +284,7 @@ manuscript. Z.A. contributed to the conceptual discussion and revised the manusc
 Both authors read and approved the final manuscript. The authors declare no competing
 interests. No specific funding was received for this work.
 
-\begin{thebibliography}{15}
+\begin{thebibliography}{17}
 \bibitem{splicingdisease} Scotti, M.M. and Swanson, M.S. RNA mis-splicing in disease. \emph{Nature Reviews Genetics} 17(1):19--32, 2016. doi:10.1038/nrg.2015.3.
 \bibitem{wangcooper} Wang, G.-S. and Cooper, T.A. Splicing in disease: disruption of the splicing code and the decoding machinery. \emph{Nature Reviews Genetics} 8:749--761, 2007. doi:10.1038/nrg2164.
 \bibitem{cartegni} Cartegni, L., Chew, S.L., and Krainer, A.R. Listening to silence and understanding nonsense: exonic mutations that affect splicing. \emph{Nature Reviews Genetics} 3:285--298, 2002. doi:10.1038/nrg775.
@@ -245,6 +298,8 @@ interests. No specific funding was received for this work.
 \bibitem{rosenberg} Rosenberg, A.B., Patwardhan, R.P., Shendure, J., and Seelig, G. Learning the sequence determinants of alternative splicing from millions of random sequences. \emph{Cell} 163:698--711, 2015. doi:10.1016/j.cell.2015.09.054.
 \bibitem{mfass} Chong, R., Insigne, K.D., Yao, D., Burghard, C.P., Wang, J., Hsiao, Y.-H.E., Jones, E.M., Goodman, D.B., Xiao, X., and Kosuri, S. A multiplexed assay for exon recognition reveals that an unappreciated fraction of rare genetic variants cause large-effect splicing disruptions. \emph{Molecular Cell} 73:183--194.e8, 2019. doi:10.1016/j.molcel.2018.10.037.
 \bibitem{riepe} Riepe, T.V., et al. Benchmarking deep learning splice prediction tools using functional splice assays. \emph{Human Mutation} 42:799--810, 2021. doi:10.1002/humu.24212.
+\bibitem{smithkitzman} Smith, C. and Kitzman, J.O. Benchmarking splice variant prediction algorithms using massively parallel splicing assays. \emph{Genome Biology} 24:294, 2023. doi:10.1186/s13059-023-03144-z.
+\bibitem{caddsplice} Rentzsch, P., Schubach, M., Shendure, J., and Kircher, M. CADD-Splice---improving genome-wide variant effect prediction using deep learning-derived splice scores. \emph{Genome Medicine} 13:31, 2021. doi:10.1186/s13073-021-00835-9.
 \bibitem{proto} Merchant, A.T., Guo, D., Viggiano, B., et al. A high-level programming language for generative biology with Proto. \emph{bioRxiv} 2026.06.22.733870, 2026. doi:10.64898/2026.06.22.733870.
 \bibitem{prroc} Saito, T. and Rehmsmeier, M. The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. \emph{PLOS ONE} 10:e0118432, 2015. doi:10.1371/journal.pone.0118432.
 \end{thebibliography}

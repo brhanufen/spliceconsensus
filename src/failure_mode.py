@@ -22,7 +22,7 @@ with open(f"{ROOT}/data/mfass/snv_data_clean.txt") as f:
                      "sdv":(1 if sl=="TRUE" else 0 if sl=="FALSE" else np.nan)})
 df=pd.DataFrame(rows)
 tools=[]
-for t in ["pangolin","spliceai","splicetx"]:
+for t in ["pangolin","spliceai","splicetx","mmsplice"]:
     fp=f"{RES}/scores_{t}.csv"
     if os.path.exists(fp): df=df.merge(pd.read_csv(fp).rename(columns={"score":t}),on="id",how="left"); tools.append(t)
 df=df.merge(pd.read_csv(f"{ROOT}/data/mfass_labels.csv")[["id","spanr"]],on="id",how="left"); tools.append("spanr")
@@ -51,8 +51,8 @@ print(f"  median dist of missed: {missed['dist_ss'].median():.0f}bp | %>10bp: {1
 
 plt.rcParams.update({"font.size":13})
 fig,ax=plt.subplots(figsize=(8,5.2)); x=np.arange(len(order))
-nм={"pangolin":"Pangolin","spliceai":"SpliceAI","splicetx":"SpliceTransformer","spanr":"SPANR"}
-co={"pangolin":"#1f77b4","spliceai":"#ff7f0e","splicetx":"#2ca02c","spanr":"#d62728"}
+nм={"pangolin":"Pangolin","spliceai":"SpliceAI","splicetx":"SpliceTransformer","spanr":"SPANR","mmsplice":"MMSplice"}
+co={"pangolin":"#1f77b4","spliceai":"#ff7f0e","splicetx":"#2ca02c","spanr":"#d62728","mmsplice":"#9467bd"}
 for t in tools: ax.plot(x,recall[t],"o-",lw=2.4,color=co[t],label=nм[t])
 ax.set_xticks(x); ax.set_xticklabels([f"{nm}\n(n={c})" for nm,c in zip(order,counts)])
 ax.set_xlabel("Distance of SDV to nearest splice site (bp)"); ax.set_ylabel("Recall at ~10% false-positive rate")

@@ -28,12 +28,21 @@
    "Spearman_vs_loss": 0.0839
   },
   {
+   "method": "mmsplice",
+   "n": 27733,
+   "AUROC": 0.7582,
+   "AP": 0.2558,
+   "AP_lo": 0.2262,
+   "AP_hi": 0.285,
+   "Spearman_vs_loss": 0.0897
+  },
+  {
    "method": "spanr",
    "n": 27663,
    "AUROC": 0.7479,
    "AP": 0.2279,
-   "AP_lo": 0.2011,
-   "AP_hi": 0.2575,
+   "AP_lo": 0.2016,
+   "AP_hi": 0.2596,
    "Spearman_vs_loss": 0.0681
   }
  ],
