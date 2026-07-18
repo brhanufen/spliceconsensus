@@ -9,6 +9,10 @@ from sklearn.model_selection import train_test_split
 from scipy.stats import spearmanr
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
+NAMES = {"pangolin":"Pangolin", "spliceai":"SpliceAI",
+         "splicetx":"SpliceTransformer", "mmsplice":"MMSplice",
+         "spanr":"SPANR"}
+
 ROOT = os.environ.get("SPLICE_ROOT", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RES = f"{ROOT}/results"; MF = f"{ROOT}/data/mfass"
 rng = np.random.default_rng(0)
@@ -120,11 +124,11 @@ def main():
     # ---- figures ----
     plt.figure(figsize=(6,5))
     for t in rt["method"]:
-        m = b.dropna(subset=[t]); fpr,tpr,_ = roc_curve(m["sdv"], m[t]); plt.plot(fpr,tpr,label=f"{t} (AUROC {roc_auc_score(m['sdv'],m[t]):.3f})")
+        m = b.dropna(subset=[t]); fpr,tpr,_ = roc_curve(m["sdv"], m[t]); plt.plot(fpr,tpr,label=f"{NAMES.get(t,t)} (AUROC {roc_auc_score(m['sdv'],m[t]):.3f})")
     plt.plot([0,1],[0,1],"k--",lw=.7); plt.xlabel("FPR"); plt.ylabel("TPR"); plt.legend(fontsize=8); plt.title("MFASS SDV detection: ROC"); plt.tight_layout(); plt.savefig(f"{RES}/fig_roc.png",dpi=150)
     plt.figure(figsize=(6,5))
     for t in rt["method"]:
-        m = b.dropna(subset=[t]); pr,rc,_ = precision_recall_curve(m["sdv"], m[t]); plt.plot(rc,pr,label=f"{t} (AP {average_precision_score(m['sdv'],m[t]):.3f})")
+        m = b.dropna(subset=[t]); pr,rc,_ = precision_recall_curve(m["sdv"], m[t]); plt.plot(rc,pr,label=f"{NAMES.get(t,t)} (AP {average_precision_score(m['sdv'],m[t]):.3f})")
     plt.axhline(b["sdv"].mean(),color="k",ls="--",lw=.7,label=f"baseline {b['sdv'].mean():.3f}"); plt.xlabel("Recall"); plt.ylabel("Precision"); plt.legend(fontsize=8); plt.title("MFASS SDV detection: PR"); plt.tight_layout(); plt.savefig(f"{RES}/fig_pr.png",dpi=150)
 
     rt.to_csv(f"{RES}/benchmark_table.csv", index=False)

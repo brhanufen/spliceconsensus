@@ -44,6 +44,9 @@ number is computed against fixed experimental ground truth and is reproducible
 from the public dataset and the released code.
 \end{abstract}
 
+\vspace{4pt}
+\noindent\textbf{Keywords:} RNA splicing; splice-disrupting variants; variant effect prediction; MFASS; multiplexed reporter assay; benchmarking; SpliceAI; Pangolin
+
 \section{Introduction}
 RNA splicing is disrupted in a large share of disease-causing variants, and
 splice-altering variants are among the hardest to interpret in clinical genetics,
@@ -59,7 +62,7 @@ earlier SPANR model \cite{spanr}, are usually
 evaluated in their own publications on heterogeneous datasets and metrics, which
 makes it hard to compare them on equal footing or to know where each is reliable.
 Multiplexed experimental assays of splicing provide a fixed ground truth for such
-comparisons \cite{rosenberg}: MFASS \cite{mfass} measured the splicing effect of tens of thousands of human
+comparisons \cite{rosenberg}: MFASS (the Multiplexed Functional Assay of Splicing by Sort-seq) \cite{mfass} measured the splicing effect of tens of thousands of human
 single-nucleotide variants in exons and their flanking intronic regions in a minigene
 reporter and labels those that strongly reduce exon inclusion as splice-disrupting
 variants.
@@ -74,12 +77,17 @@ baseline, on
 the MFASS single-nucleotide variants, scored through a single interface, with
 bootstrap confidence intervals and an exon-grouped held-out consensus. Beyond
 the aggregate ranking, we ask where the predictions fail: we stratify detection by
-distance to the splice site and identify the variants that every tool misses. The
-contribution is the reproducible benchmark and a characterization of a shared
-exon-interior blind spot.
+distance to the splice site and identify the variants that every tool misses. Relative
+to prior MFASS-based comparisons \cite{smithkitzman,caddsplice}, the contribution here
+is twofold: a single-interface head-to-head that adds Pangolin, SpliceTransformer, and
+MMSplice with bootstrap confidence intervals and an exon-grouped held-out consensus, and
+a characterization of the shared exon-interior blind spot through the set of variants
+that every tool misses. We do not benchmark CADD-Splice itself, because it is a
+meta-score built on top of the sequence predictors evaluated here, so it would not be a
+like-for-like comparison.
 
 \section{Data and ground truth}
-MFASS (the Multiplexed Functional Assay of Splicing by Sort-seq) measured the
+MFASS measured the
 splicing effect of human single-nucleotide variants placed in exons and their
 flanking intronic regions in a minigene reporter \cite{mfass}. Each variant carries
 a measured change in exon inclusion (the $\Delta$ inclusion index), and variants
@@ -143,7 +151,10 @@ SPANR (legacy)     & 27{,}663 & 0.748 & 0.228 & [0.202, 0.260] \\
 \end{center}
 
 Confidence intervals are 1{,}000-sample bootstraps of the average precision. SPANR
-covers slightly fewer variants because its precomputed table omits a small number.
+covers slightly fewer variants because its precomputed table omits 70 of the
+evaluated variants, of which only 2 are SDVs, so the reduced coverage does not affect its ranking. The same
+ordering holds under both the ROC view (Figure~1) and the precision-recall view
+(Figure~2), which is the more informative of the two at this 3.79\% positive base rate.
 
 \begin{figure}[h]
 \centering
@@ -155,16 +166,20 @@ ROC performance; all modern tools exceed the legacy SPANR baseline.}
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.70\textwidth]{../results/fig_pr.png}
-\caption{Precision-recall for the same task (dashed line is the 0.038 positive
+\caption{Precision-recall for the same task (dashed line is the 3.79\% positive
 base rate). The ranking is consistent with the ROC view.}
 \end{figure}
 
 \textbf{Finding 1: Pangolin is the strongest predictor}, by a clear margin on both
 AUROC and average precision, and its AP confidence interval does not overlap those
-of the other tools. \textbf{Finding 2: all four modern predictors beat the legacy
+of the other tools.
+
+\noindent\textbf{Finding 2: all four modern predictors beat the legacy
 SPANR model}, though MMSplice, used here tissue-agnostically on a single-cassette
 minigene context rather than a variant's native multi-exon transcript, ranks fourth
-and sits just above the SPANR baseline. \textbf{Finding 3: the ranking reproduces the relative ordering the
+and sits just above the SPANR baseline.
+
+\noindent\textbf{Finding 3: the ranking reproduces the relative ordering the
 Pangolin authors reported}, which is a correctness check on the scoring pipeline.
 
 \textbf{Finding 4 (output granularity): in these outputs SpliceAI's scores are more
@@ -179,8 +194,11 @@ resolution may contribute to Pangolin's stronger ranking here.
 \textbf{Finding 5 (consensus): combining does not help.} A logistic-regression
 consensus of the three deep-learning sequence-window predictors, trained and evaluated on an
 \emph{exon-grouped} 50/50 split (no exon appears in both train and test), reaches
-held-out AP 0.443 versus Pangolin's 0.442 on the same split, a difference far
-inside the bootstrap interval, and a slightly lower AUROC (0.890 versus 0.893). A
+held-out AP 0.443 versus Pangolin's 0.442 on the same split (both higher than the
+full-set 0.421 because this is the held-out half of the exon-grouped split). The
+difference of $+0.0014$ AP has a paired bootstrap 95\% confidence interval of
+$[-0.011, +0.012]$ that straddles zero, with 41\% of resamples favoring Pangolin,
+and the consensus AUROC is slightly lower (0.890 versus 0.893). A
 rank-average consensus is worse (AP 0.372). The fitted model essentially relies on
 Pangolin alone (standardized coefficient 2.0, versus near zero or negative for the
 others). For this MFASS benchmark, Pangolin is the strongest single predictor.
@@ -221,10 +239,11 @@ stricter 5\% and 8\% at a more permissive 20\% false-positive rate; the effect i
 qualitatively the same at every threshold). These shared misses sit
 predominantly away from the splice site: 77\% lie more than 10\,bp from a splice
 site, and 149 of 200 (74\%) are exonic. They are not weak-effect variants sitting
-near the labeling cutoff: their median inclusion change is $-0.78$ (82\% below
-$-0.70$, only 4\% within 0.1 of the $-0.50$ threshold), close to the $-0.87$ median
-of the disrupting variants the tools do detect, so the shared miss reflects a true
-blind spot rather than borderline labels. They are consistent with exon-interior
+near the labeling cutoff: 82\% have an inclusion change below $-0.70$, and only 4\%
+sit within 0.1 of the $-0.50$ threshold. Their median change ($-0.78$) is modestly
+weaker than that of the detected disrupting variants ($-0.87$), but the shared miss
+is a true blind spot on strong-effect variants rather than an artifact of borderline
+labels. They are consistent with exon-interior
 regulatory disruptions, including possible exonic splicing enhancer or silencer
 effects \cite{cartegni}, the class of variant
 MFASS was designed to expose. That MMSplice, which is explicitly built to model modular
@@ -235,7 +254,7 @@ strongest for splice-site-proximal variants but require caution for exon-interio
 variants, where roughly one in five disrupting variants is invisible to all current
 predictors.
 
-\section{What this shows, and what it does not}
+\section{Scope and limitations}
 It shows that, against a multiplexed experimental splicing assay, Pangolin detects
 splice-disrupting variants better than SpliceAI, SpliceTransformer, MMSplice, and SPANR, that
 all four modern tools beat the legacy baseline, and that a simple consensus does not
